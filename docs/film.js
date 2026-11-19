@@ -75,34 +75,61 @@ function drawLetterPage(phase) {
   if(project.school)filmType(project.school,left,678,17,c.soft,project.captionFont,450);
   filmType(String(page+1).padStart(2,'0')+' / '+String(pages).padStart(2,'0'),right,678,16,c.soft,project.captionFont,120,'right');
 }
-function drawFilmEnding(elapsed,duration) {
-  const c=paperColors(),tail=project.directed?Math.min(project.tailSeconds,duration-1):0;
-  const key=photoKeyForLetter();
-  ctx.fillStyle='#141817';ctx.fillRect(0,0,1280,720);
-  if(key){
-    filmImage(key,0,0,1280,720);
-    if(project.directed&&beforePhoto()&&elapsed<2){
-      ctx.save();ctx.globalAlpha=1-Direction.ease((elapsed-.8)/1.2);
-      ctx.fillStyle='#141817';ctx.fillRect(0,0,1280,720);
-      filmImage('beforePhoto',0,0,1280,720);ctx.restore();
-    }
-  }else{
-    ctx.fillStyle=c.paper;ctx.fillRect(0,0,1280,720);
-    filmType(project.filmTitle,640,308,46,c.ink,project.titleFont,1090,'center');
+// Fit the final greeting like two lines of a printed dedication.
+function endingLines(message, width) {
+  const measure = text => ctx.measureText(text).width;
+  if (measure(message) <= width) return [message];
+  const chars = Array.from(message);
+  let best, bestCost = Infinity;
+  for (let i = 1; i < chars.length; i++) {
+    const left = chars.slice(0, i).join('').trimEnd();
+    const right = chars.slice(i).join('').trimStart();
+    const a = measure(left), b = measure(right);
+    if (!left || !right || Math.max(a,b) > width) continue;
+    const wordBreak = /\s/u.test(chars[i-1]) || /\s/u.test(chars[i]);
+    const cost = Math.abs(a-b) + (wordBreak ? 0 : width);
+    if (cost < bestCost) { best = [left,right]; bestCost = cost; }
   }
-  const alpha=tail?1-Direction.ease((elapsed-duration+tail+.8)/.8):1;
-  if(alpha<=0)return;
-  ctx.save();ctx.globalAlpha=alpha*(project.directed?Direction.ease((elapsed-1)/1.2):1);
-  if(key){
-    const shade=ctx.createLinearGradient(0,385,0,720);
-    shade.addColorStop(0,'rgba(9,13,13,0)');shade.addColorStop(1,'rgba(9,13,13,.86)');
-    ctx.fillStyle=shade;ctx.fillRect(0,385,1280,335);
+  return best;
+}
+
+function drawFilmEnding(elapsed, duration) {
+  const c = paperColors();
+  const key = photoKeyForLetter();
+  const hasPhoto = key != null && imageOf(assetSource(key));
+  const hold = Math.min(project.directed ? project.tailSeconds : 3, duration * .44);
+  const fade = Math.min(1.4, duration * .13);
+  ctx.fillStyle = c.paper;
+  ctx.fillRect(0, 0, 1280, 720);
+
+  // Fade the whole photograph into the stock before printing the dedication.
+  if (hasPhoto && elapsed < hold + fade) {
+    ctx.save();
+    ctx.globalAlpha = 1 - Direction.ease((elapsed - hold) / fade);
+    filmImage(key, 44, 30, 1192, 660);
+    ctx.restore();
+    return;
   }
-  const ink=key?'#fffaf0':c.ink,soft=key?'#e2dbcf':c.soft;
-  const message=project.ending||'함께해 주셔서 고맙습니다.';
-  filmType(message,79,600,40,ink,project.titleFont,1110);
-  const signature=[project.school,project.name?project.name+' 올림':''].filter(Boolean).join('   ·   ');
-  if(signature)filmType(signature,81,652,22,soft,project.captionFont,1080);
+  const cardStart = hasPhoto ? hold + fade : 0;
+  ctx.save();
+  ctx.globalAlpha = Direction.ease((elapsed - cardStart) / Math.min(.85, duration * .1));
+  const message = (project.ending || '').trim() || '함께해 주셔서 고맙습니다.';
+  const signature = [project.school, project.name ? project.name + ' 올림' : ''].filter(Boolean).join('  ·  ');
+  const width = 1024;
+  let fontSize = 54, rows;
+  while (!rows) {
+    ctx.font = fontSize + 'px "' + family(project.titleFont) + '", sans-serif';
+    rows = endingLines(message, width);
+    if (!rows && fontSize <= 32) rows = letterLines(message, width, fontSize);
+    if (!rows) fontSize -= 2;
+  }
+  const baseline = (signature ? 350 : 380) - (rows.length - 1) * 39;
+  rows.forEach((line, i) => filmType(line, 640, baseline + i*78, fontSize, c.ink, project.titleFont, width, 'center'));
+  if (signature) {
+    const bottom = baseline + (rows.length-1)*78;
+    filmRule(621, bottom+37, 38, c.accent);
+    filmType(signature, 640, bottom+83, 22, c.soft, project.captionFont, 1000, 'center');
+  }
   ctx.restore();
 }
 function drawGrowthPhoto(scene,t) {

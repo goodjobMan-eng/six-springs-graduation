@@ -83,7 +83,7 @@ function refreshDirector() {
 }
 
 function presetPanel() {
-  return '<section class="director-panel"><label class="preset-toggle"><input id="directedPreset" type="checkbox" '+(project.directed?'checked':'')+'><strong>장면 사이 목소리와 여운</strong></label><p>6학년의 마지막 사진에서 어른의 어린 시절로 이어져요. 마지막 인사 뒤에는 사진과 음악이 잠시 남아요.</p></section>';
+  return '<section class="director-panel"><label class="preset-toggle"><input id="directedPreset" type="checkbox" '+(project.directed?'checked':'')+'><strong>장면 사이 목소리와 여운</strong></label><p>6학년의 마지막 사진에서 어른의 어린 시절로 이어져요. 엔딩에서는 사진을 충분히 본 뒤 마지막 인사를 읽어요.</p></section>';
 }
 
 function recordingForScene(key) {
@@ -190,7 +190,7 @@ function mountDirectionTools(){
     $('#testOpening').onclick=()=>exportVideo(true);
   }
   if(step===5 && project.directed){
-    $('#exportBtn').insertAdjacentHTML('beforebegin',`<label class="field">마지막 인사 뒤 사진만 보는 시간<select id="tailHold">${[3,4,5].map(n=>`<option ${n===project.tailSeconds?'selected':''}>${n}</option>`).join('')}</select>초</label>`);
+    $('#exportBtn').insertAdjacentHTML('beforebegin',`<label class="field">엔딩 사진을 보여주는 시간<select id="tailHold">${[3,4,5].map(n=>`<option ${n===project.tailSeconds?'selected':''}>${n}</option>`).join('')}</select>초</label>`);
     $('#tailHold').onchange=e=>{project.tailSeconds=Number(e.target.value);if(project.endingDuration<project.tailSeconds+1)project.endingDuration=project.tailSeconds+1;refreshDirector();};
   }
 }

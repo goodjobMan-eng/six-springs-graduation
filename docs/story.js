@@ -28,7 +28,7 @@ function storyBoard() {
     ${row('grade','여섯 해의 기억','학년마다 기억나는 하루와 그날의 한 장면',photoCount()+' / 12장')}
     ${row('family','어른도 나만 했을 때','소중한 어른의 옛 사진과 내 얼굴 겹치기',project.includeFamily?'선택 · 1~2장':'생략')}
     ${row('letter','마음의 편지','그날 해 준 말 하나를 떠올리며 쓰기',project.letter.trim()?'작성됨':'편지 1통')}
-    ${row('ending','마지막 인사','지금 함께 있는 사진으로 마무리','사진 1장')}
+    ${row('ending','마지막 인사','함께 찍은 사진 뒤에 남기는 한마디','사진 1장')}
     </div>`;
 }
 
@@ -39,7 +39,7 @@ function setSceneEditor(kind,index=0){
   const next={intro:2,grade:1,family:2,letter:3,ending:5}[kind];
   changeStep(next);
   const scene=composition.scenes.find(s=>s.kind===kind&&(kind!=='grade'||s.index===index));
-  if(scene)seek(scene.start+(kind==='ending'?Math.min(2,scene.duration*.35):0));
+  if(scene)seek(scene.start+(kind==='ending'?scene.duration*.82:0));
   const body=$('#editorBody');
   body.scrollTop=0;
   if(kind==='family'){
