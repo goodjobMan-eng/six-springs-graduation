@@ -3,6 +3,7 @@
 function nextFilmDefaults() {
   const p = StudioModel.normalize(legacyDefaults());
   p.directed = true;
+  p.transition = 'sequence';
   p.titleFont = 'gowunbatang';
   p.letterFont = 'gowunbatang';
   p.bridgeText = '';
@@ -83,7 +84,7 @@ function refreshDirector() {
 }
 
 function presetPanel() {
-  return '<section class="director-panel"><label class="preset-toggle"><input id="directedPreset" type="checkbox" '+(project.directed?'checked':'')+'><strong>장면 사이 목소리와 여운</strong></label><p>6학년의 마지막 사진에서 어른의 어린 시절로 이어져요. 엔딩에서는 사진을 충분히 본 뒤 마지막 인사를 읽어요.</p></section>';
+  return '<section class="director-panel"><label class="preset-toggle"><input id="directedPreset" type="checkbox" '+(project.directed?'checked':'')+'><strong>장면 사이 목소리와 여운</strong></label><p>6학년 사진 위로 어른에게 건네는 첫마디를 먼저 들려줄 수 있어요. 엔딩은 함께 찍은 사진과 마지막 인사로 마쳐요.</p></section>';
 }
 
 function recordingForScene(key) {
@@ -175,7 +176,7 @@ function mountDirectionTools(){
       project.photoDurations=Direction.growthCutDurations();
       project.singleGrowthPhotos=true;
       save();renderTimeline();renderEditor();seek(composition.photoStarts[selectedPhoto]);
-      toast('성장 사진을 한 장씩 3~5초로 편집했어요.');
+      toast('성장 사진 12장의 길이를 3~5초로 맞췄어요.');
     };
     const hints=['입학 무렵 내 모습과 처음 해 본 일','친구와 함께한 순간과 평범한 하루','새로 도전한 일과 그 뒤의 표정','가장 웃겼던 날과 그날 함께한 사람','오래 연습한 일과 해냈던 순간','간직하고 싶은 교실 모습과 지금의 내 얼굴'];
     b.querySelector('.section-desc').textContent=(grade+1)+'학년 사진 두 장을 골라주세요. '+hints[grade]+' 중에서 골라도 좋아요.';

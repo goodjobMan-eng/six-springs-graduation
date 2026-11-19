@@ -69,8 +69,14 @@ function drawLetterPage(phase) {
   const copy=project.letter.trim()||'함께해 주셔서 고맙습니다.';
   const rows=letterLines(copy,lineWidth-10,32),perPage=5,pages=Math.max(1,Math.ceil(rows.length/perPage));
   const page=Math.min(pages-1,Math.floor(phase*pages));
+  ctx.save();
+  if(project.transition==='sequence'){
+    const secondsOnPage=(phase*pages-page)*project.letterDuration/pages;
+    ctx.globalAlpha*=Direction.ease(secondsOnPage/.45);
+  }
   rows.slice(page*perPage,(page+1)*perPage).forEach((line,i)=>filmType(line,left,293+i*51,32,c.ink,project.letterFont,lineWidth));
   if(page===pages-1&&project.name)filmType(project.name+' 올림',right,604,26,c.ink,project.letterFont,lineWidth,'right');
+  ctx.restore();
   filmRule(left,645,lineWidth,c.soft);
   if(project.school)filmType(project.school,left,678,17,c.soft,project.captionFont,450);
   filmType(String(page+1).padStart(2,'0')+' / '+String(pages).padStart(2,'0'),right,678,16,c.soft,project.captionFont,120,'right');
@@ -138,7 +144,18 @@ function drawGrowthPhoto(scene,t) {
   const phase=(t-composition.photoStarts[n])/project.photoDurations[n];
   ctx.fillStyle=c.paper;ctx.fillRect(0,0,1280,720);
   const pair=project.directed&&!project.singleGrowthPhotos&&n%2===1&&project.photos[n-1]&&project.photos[n];
-  if(pair){
+  const spreads=project.transition==='sequence' && (g===1 || g===3) && project.photos[g*2] && project.photos[g*2+1];
+  if(spreads && n%2===1){
+    const reveal=Direction.ease((t-composition.photoStarts[n])/.52);
+    const firstWidth=1184-604*reveal;
+    imageIn(String(n-1),48,36,firstWidth,530,1);
+    if(reveal>0){
+      ctx.save();
+      ctx.beginPath();ctx.rect(1232-584*reveal,36,584*reveal,530);ctx.clip();
+      imageIn(String(n),648,36,584,530,phase);
+      ctx.restore();
+    }
+  }else if(pair){
     imageIn(String(n-1),48,50,553,506,1);
     imageIn(String(n),621,50,611,506,phase);
   }else{
@@ -161,6 +178,41 @@ function drawGrowthPhoto(scene,t) {
     ctx.fillStyle=bg;ctx.fillRect(247,605,width,height);
     rows.forEach((r,i)=>filmType(r,270,640+i*35,size,chosen,project.captionFont,width-30));
   }
+}
+
+// Establish the child before introducing the title. Aligned portraits share one matte.
+function drawMemoryOpening(phase) {
+  const c=paperColors();
+  ctx.fillStyle=c.paper;ctx.fillRect(0,0,1280,720);
+  const keys=['beforePhoto','nowPhoto'].filter(key=>assetSource(key));
+  const blend=Direction.ease((phase-.31)/.38);
+  overlap(keys,phase,keys.length===2?[1-blend,blend]:[1]);
+  ctx.save();
+  ctx.globalAlpha=Direction.ease((phase-.08)/.12);
+  filmType(project.filmTitle,640,102,46,c.ink,project.titleFont,1110,'center');
+  ctx.restore();
+  const hasBoth=keys.length===2;
+  const first=hasBoth?phase<.5:keys[0]==='beforePhoto';
+  ctx.save();
+  ctx.globalAlpha=hasBoth?Direction.ease(Math.abs(phase-.5)/.07):1;
+  filmType(first?'처음 학교에 온 날':'졸업을 앞둔 오늘',640,677,27,c.soft,project.captionFont,950,'center');
+  ctx.restore();
+}
+
+// Keep cuts crisp inside the montage. Leave a breath before the letter, with or without family photos.
+function drawChapterFade(scene,elapsed) {
+  let opacity=0;
+  const precedesLetter=scene.kind==='family'||(scene.kind==='grade'&&scene.index===5&&!project.includeFamily);
+  if(precedesLetter) opacity=Direction.ease((elapsed-scene.duration+.65)/.65);
+  if(scene.kind==='letter') opacity=1-Direction.ease(elapsed/.55);
+  if(opacity<=0)return;
+  ctx.save();ctx.globalAlpha=opacity;ctx.fillStyle=paperColors().paper;ctx.fillRect(0,0,1280,720);ctx.restore();
+}
+
+function memoryMusicLevel(t) {
+  const intoLetter=Direction.ease((t-composition.letterStart+1.5)/1.5);
+  const outOfLetter=Direction.ease((t-composition.endingStart)/1.8);
+  return 1-.45*intoLetter*(1-outOfLetter);
 }
 
 function drawOpeningSlate() {
