@@ -22,13 +22,14 @@ function addNextGrowthPhoto() {
 
 function storyBoard() {
   const row=(id,name,detail,count)=>`<button class="story-row" data-story="${id}"><span><b>${name}</b><small>${detail}</small></span><em>${count}</em><i aria-hidden="true">›</i></button>`;
-  return `<div class="story-sheet"><div class="story-head"><h2>나의 장면 구성</h2><span>${fmt(total)}</span></div><p>${photoCount()?'편집할 장면을 골라 주세요.':'먼저 1학년 사진 한 장을 골라 보세요.'}</p>
+  return `<div class="story-sheet"><div class="story-head"><h2>나의 장면 구성</h2><span>${fmt(total)}</span></div><p>${photoCount()?'편집할 장면을 골라 주세요.':'처음이라면 하루의 예시 영화를 먼저 보세요.'}</p>
+    <button class="outline" data-story="sample">▶ 하루의 졸업영화 예시 보기</button>
     <button class="story-start" data-story="first">시작하기 · ${photoCount()===12?'성장 사진 보기':photoCount()?'다음 사진 넣기':'첫 사진 넣기'} <span>→</span></button>
-    ${row('intro','처음과 지금','입학 무렵의 나와 지금의 나','사진 2장')}
-    ${row('grade','여섯 해의 기억','학년마다 기억나는 하루와 그날의 한 장면',photoCount()+' / 12장')}
-    ${row('family','어른도 나만 했을 때','소중한 어른의 옛 사진과 내 얼굴 겹치기',project.includeFamily?'선택 · 1~2장':'생략')}
-    ${row('letter','마음의 편지','그날 해 준 말 하나를 떠올리며 쓰기',project.letter.trim()?'작성됨':'편지 1통')}
-    ${row('ending','마지막 인사','함께 찍은 사진 뒤에 남기는 한마디','사진 1장')}
+    ${row('intro','처음과 지금','입학식 사진 한 장 + 지금 내 얼굴 한 장','사진 2장')}
+    ${row('grade','여섯 해의 기억','한 학년에 두 장씩. 예를 들면 운동회에서 달리는 나와 결승선에서 웃는 나',photoCount()+' / 12장')}
+    ${row('family','어른도 나만 했을 때','나를 돌봐 준 어른의 어릴 적 사진을 골라요. 이 장면은 건너뛰어도 돼요',project.includeFamily?'선택 · 1~2장':'생략')}
+    ${row('letter','마음의 편지','“입학식 날, 내 운동화 끈 묶어 준 거 기억나요?”처럼 둘만 아는 일로 시작해요',project.letter.trim()?'작성됨':'편지 1통')}
+    ${row('ending','마지막 인사','함께 찍은 사진 한 장과 마지막 한마디. “다음엔 내가 먼저 손잡아 줄게요.”','사진 1장')}
     </div>`;
 }
 
@@ -55,7 +56,11 @@ function dressEditor(){
   if(step===0){
     body.querySelectorAll('[data-story]').forEach(button=>button.onclick=()=>{
       const kind=button.dataset.story;
-      if(kind==='first')addNextGrowthPhoto();else setSceneEditor(kind);
+      if(kind==='sample'){
+        const demo=document.querySelector('#demoBtn');
+        const previous=project;
+        Promise.resolve(demo.onclick()).then(()=>{if(previous!==project)play();});
+      }else if(kind==='first')addNextGrowthPhoto();else setSceneEditor(kind);
     });
   }
   if(step===1){
