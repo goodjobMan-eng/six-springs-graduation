@@ -3,6 +3,7 @@
 function nextFilmDefaults() {
   const p = StudioModel.normalize(legacyDefaults());
   p.directed = true;
+  p.includeFamily = false;
   p.transition = 'sequence';
   p.titleFont = 'gowunbatang';
   p.letterFont = 'gowunbatang';
@@ -36,7 +37,7 @@ function restoreDirection(p, raw) {
 
 function bridgeLine() {
   const who = activeAdults().map(a=>a.label || '소중한 어른').join(', ');
-  return project.bridgeText.trim() || (who + '도 나만 한 어린이였대요.');
+  return project.bridgeText.trim() || (who + ', 내 입학식 날 기억나요?');
 }
 
 function directedFamily(phase,t) {
@@ -45,15 +46,19 @@ function directedFamily(phase,t) {
   if(nowPhoto())keys.push('nowPhoto');
   const weights=Direction.familyWeights(keys.length,phase);
   const clip=clipAt(t);
-  write('서로 닮은 우리',640,111,44,p.ink,project.titleFont);
+  if(phase<.18 && !clip){
+    if(nowPhoto()) overlap(['nowPhoto'],0,[1]);
+    write(bridgeLine(),640,677,27,p.ink);return;
+  }
+  write(project.recipient || '마음의 편지',640,111,44,p.ink,project.titleFont);
   if (!clip || !drawClip(clip.asset,230,150,820,480)) overlap(keys,phase,weights);
   const solo=weights.findIndex(w=>w>.96);
   const key=keys[solo];
   let caption=keys.map(k=>k==='nowPhoto'?'나':project.adults[Number(k.slice(5))].label).join(' · ');
-  if (key==='nowPhoto') caption='사진 속에서 내 얼굴을 발견했어요.';
+  if (key==='nowPhoto') caption='';
   else if (key) {
     const adult=project.adults[Number(key.slice(5))];
-    caption=adult.memory || (adult.label + ', 그때는 어떤 어린이였어요?');
+    caption=adult.memory || (adult.label + ', 이 사진 찍던 날 기억나요?');
   }
   write(caption,640,677,27,p.ink);
 }
@@ -158,9 +163,9 @@ function mountDirectionTools(){
     b.insertAdjacentHTML(step===0?'beforeend':'afterbegin',presetPanel());
     $('#directedPreset').onchange=e=>{project.directed=e.target.checked;refreshDirector();};
   }
-  if(step===2 && project.includeFamily && project.directed){
+  if(step===3 && project.includeFamily && project.directed){
     const sections=b.querySelectorAll('.meeting-section');
-    sections[1].insertAdjacentHTML('afterbegin',`<label class="field">어른 사진으로 이어지는 한 문장<input id="bridgeLine" maxlength="70" value="${esc(project.bridgeText)}" placeholder="${esc(bridgeLine())}"></label><div class="button-row"><button class="outline" id="recordBridge">이 문장 녹음하기</button><button class="outline" id="playBridge">연결 장면 재생</button></div>`);
+    sections[0].insertAdjacentHTML('afterbegin',`<label class="field">사진을 보여 주기 전에 건넬 첫마디<input id="bridgeLine" maxlength="70" value="${esc(project.bridgeText)}" placeholder="${esc(bridgeLine())}"></label><div class="button-row"><button class="outline" id="recordBridge">이 문장 녹음하기</button><button class="outline" id="playBridge">연결 장면 재생</button></div>`);
     $('#bridgeLine').oninput=e=>{project.bridgeText=e.target.value;save();draw();};
     $('#recordBridge').onclick=()=>recordingForScene('family');
     $('#playBridge').onclick=()=>{pause();seek(composition.familyStart-3);play();};

@@ -27,8 +27,7 @@ function storyBoard() {
     <button class="story-start" data-story="first">시작하기 · ${photoCount()===12?'성장 사진 보기':photoCount()?'다음 사진 넣기':'첫 사진 넣기'} <span>→</span></button>
     ${row('intro','처음과 지금','입학식 사진 한 장 + 지금 내 얼굴 한 장','사진 2장')}
     ${row('grade','여섯 해의 기억','한 학년에 두 장씩. 예를 들면 운동회에서 달리는 나와 결승선에서 웃는 나',photoCount()+' / 12장')}
-    ${row('family','어른도 나만 했을 때','나를 돌봐 준 어른의 어릴 적 사진을 골라요. 이 장면은 건너뛰어도 돼요',project.includeFamily?'선택 · 1~2장':'생략')}
-    ${row('letter','마음의 편지','“입학식 날, 내 운동화 끈 묶어 준 거 기억나요?”처럼 둘만 아는 일로 시작해요',project.letter.trim()?'작성됨':'편지 1통')}
+    ${row('letter','마음의 편지','둘이 기억하는 하루로 시작해요. 편지 속에 어릴 적 가족사진도 넣을 수 있어요.',project.letter.trim()?'작성됨':'편지 1통')}
     ${row('ending','마지막 인사','함께 찍은 사진 한 장과 마지막 한마디. “다음엔 내가 먼저 손잡아 줄게요.”','사진 1장')}
     </div>`;
 }
@@ -37,14 +36,14 @@ function setSceneEditor(kind,index=0){
   if(mediaBusy||exporting||recorder?.state==='recording')return;
   pause();
   if(kind==='grade'){grade=index;selectedPhoto=grade*2;}
-  const next={intro:2,grade:1,family:2,letter:3,ending:5}[kind];
+  const next={intro:2,grade:1,family:3,letter:3,ending:5}[kind];
   changeStep(next);
   const scene=composition.scenes.find(s=>s.kind===kind&&(kind!=='grade'||s.index===index));
   if(scene)seek(scene.start+(kind==='ending'?scene.duration*.82:0));
   const body=$('#editorBody');
   body.scrollTop=0;
   if(kind==='family'){
-    const section=body.querySelectorAll('.meeting-section')[1];
+    const section=body.querySelector('.meeting-section');
     if(section)section.scrollIntoView({block:'nearest'});
   }
   if(matchMedia('(max-width:830px)').matches && kind!=='family')$('.editor').scrollIntoView({block:'start'});
